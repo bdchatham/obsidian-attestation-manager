@@ -2,8 +2,9 @@ server:
   host: "0.0.0.0"  # Listen on all interfaces
   port: 50051      # Default gRPC port
 
-# Operator's ECDSA private key for signing attestations
+# Operator's BN254 private key for signing attestations
 # Replace with your actual key in production
+# The key should be a 32-byte scalar in raw binary format
 operator_key:
   private_key_path: "/etc/attestation-manager/operator.key"
 

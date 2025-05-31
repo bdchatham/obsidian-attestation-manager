@@ -1,0 +1,204 @@
+{
+  "//": {
+    "metadata": {
+      "backend": "local",
+      "stackName": "attestation-manager",
+      "version": "0.20.12"
+    },
+    "outputs": {
+      "attestation-manager": {
+        "bucket-name": "bucket-name",
+        "codebuild-project": "codebuild-project",
+        "launch-template-id": "launch-template-id"
+      }
+    }
+  },
+  "output": {
+    "bucket-name": {
+      "value": "${aws_s3_bucket.attestation-manager-binaries.id}"
+    },
+    "codebuild-project": {
+      "value": "${aws_codebuild_project.attestation-manager-build.name}"
+    },
+    "launch-template-id": {
+      "value": "${aws_launch_template.attestation-manager-template.id}"
+    }
+  },
+  "provider": {
+    "aws": [
+      {
+        "region": "us-east-1"
+      }
+    ]
+  },
+  "resource": {
+    "aws_codebuild_project": {
+      "attestation-manager-build": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/attestation-manager-build",
+            "uniqueId": "attestation-manager-build"
+          }
+        },
+        "artifacts": {
+          "type": "NO_ARTIFACTS"
+        },
+        "environment": {
+          "compute_type": "BUILD_GENERAL1_SMALL",
+          "environment_variable": [
+            {
+              "name": "S3_BUCKET",
+              "value": "${aws_s3_bucket.attestation-manager-binaries.id}"
+            }
+          ],
+          "image": "aws/codebuild/amazonlinux2-x86_64-standard:4.0",
+          "type": "LINUX_CONTAINER"
+        },
+        "name": "attestation-manager-build",
+        "service_role": "${aws_iam_role.codebuild-role.arn}",
+        "source": {
+          "buildspec": "{\"version\":\"0.2\",\"phases\":{\"install\":{\"commands\":[\"yum install -y golang make git\"]},\"pre_build\":{\"commands\":[\"git clone https://github.com/bdchatham/obsidian-attestation-manager.git .\"]},\"build\":{\"commands\":[\"./packaging/build.sh\",\"aws s3 cp release/attestation-manager.tar.gz s3://$S3_BUCKET/\"]}}}",
+          "type": "NO_SOURCE"
+        }
+      }
+    },
+    "aws_iam_instance_profile": {
+      "instance-profile": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/instance-profile",
+            "uniqueId": "instance-profile"
+          }
+        },
+        "name": "attestation-manager-instance-profile",
+        "role": "${aws_iam_role.instance-role.name}"
+      }
+    },
+    "aws_iam_role": {
+      "codebuild-role": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/codebuild-role",
+            "uniqueId": "codebuild-role"
+          }
+        },
+        "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"codebuild.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}",
+        "name": "attestation-manager-codebuild-role"
+      },
+      "instance-role": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/instance-role",
+            "uniqueId": "instance-role"
+          }
+        },
+        "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"}}]}",
+        "name": "attestation-manager-instance-role"
+      }
+    },
+    "aws_iam_role_policy": {
+      "codebuild-policy": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/codebuild-policy",
+            "uniqueId": "codebuild-policy"
+          }
+        },
+        "name": "attestation-manager-codebuild-policy",
+        "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Resource\":[\"${aws_s3_bucket.attestation-manager-binaries.arn}\",\"${aws_s3_bucket.attestation-manager-binaries.arn}/*\"],\"Action\":[\"s3:PutObject\",\"s3:GetObject\",\"s3:ListBucket\"]},{\"Effect\":\"Allow\",\"Resource\":[\"*\"],\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"]}]}",
+        "role": "${aws_iam_role.codebuild-role.id}"
+      },
+      "instance-s3-policy": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/instance-s3-policy",
+            "uniqueId": "instance-s3-policy"
+          }
+        },
+        "name": "attestation-manager-s3-access",
+        "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\",\"s3:ListBucket\"],\"Resource\":[\"${aws_s3_bucket.attestation-manager-binaries.arn}\",\"${aws_s3_bucket.attestation-manager-binaries.arn}/*\"]}]}",
+        "role": "${aws_iam_role.instance-role.id}"
+      }
+    },
+    "aws_launch_template": {
+      "attestation-manager-template": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/attestation-manager-template",
+            "uniqueId": "attestation-manager-template"
+          }
+        },
+        "block_device_mappings": [
+          {
+            "device_name": "/dev/xvda",
+            "ebs": {
+              "volume_size": 20,
+              "volume_type": "gp3"
+            }
+          }
+        ],
+        "iam_instance_profile": {
+          "name": "${aws_iam_instance_profile.instance-profile.name}"
+        },
+        "image_id": "ami-0c7217cdde317cfec",
+        "instance_type": "t3.medium",
+        "metadata_options": {
+          "http_endpoint": "enabled",
+          "http_tokens": "required"
+        },
+        "name": "attestation-manager-template",
+        "network_interfaces": [
+          {
+            "associate_public_ip_address": "false",
+            "delete_on_termination": "true",
+            "security_groups": [
+            ]
+          }
+        ],
+        "user_data": "IyEvYmluL2Jhc2gKIyBJbnN0YWxsIHJlcXVpcmVkIHBhY2thZ2VzCnl1bSB1cGRhdGUgLXkKeXVtIGluc3RhbGwgLXkgYXdzLWNsaSB1bnppcAoKIyBDcmVhdGUgZGlyZWN0b3JpZXMKbWtkaXIgLXAgL29wdC9hdHRlc3RhdGlvbi1tYW5hZ2VyCgojIERvd25sb2FkIGFuZCBleHRyYWN0IGJpbmFyeSBwYWNrYWdlIGZyb20gUzMKYXdzIHMzIGNwIHMzOi8vJHtUZlRva2VuW1RPS0VOLjExXX0vYXR0ZXN0YXRpb24tbWFuYWdlci50YXIuZ3ogL29wdC9hdHRlc3RhdGlvbi1tYW5hZ2VyLwpjZCAvb3B0L2F0dGVzdGF0aW9uLW1hbmFnZXIKdGFyIHh6ZiBhdHRlc3RhdGlvbi1tYW5hZ2VyLnRhci5negoKIyBJbnN0YWxsIHRoZSBzZXJ2aWNlCmNkIGF0dGVzdGF0aW9uLW1hbmFnZXIKLi9wYWNrYWdpbmcvaW5zdGFsbC5zaAoKIyBHZW5lcmF0ZSBvcGVyYXRvciBrZXkgaWYgbm90IGV4aXN0cwppZiBbICEgLWYgL2V0Yy9hdHRlc3RhdGlvbi1tYW5hZ2VyL29wZXJhdG9yLmtleSBdOyB0aGVuCiAgb3BlbnNzbCByYW5kIC1vdXQgL2V0Yy9hdHRlc3RhdGlvbi1tYW5hZ2VyL29wZXJhdG9yLmtleSAzMgogIGNob3duIGF0dGVzdGF0aW9uOmF0dGVzdGF0aW9uIC9ldGMvYXR0ZXN0YXRpb24tbWFuYWdlci9vcGVyYXRvci5rZXkKICBjaG1vZCA2MDAgL2V0Yy9hdHRlc3RhdGlvbi1tYW5hZ2VyL29wZXJhdG9yLmtleQpmaQoKIyBTdGFydCB0aGUgc2VydmljZQpzeXN0ZW1jdGwgZW5hYmxlIGF0dGVzdGF0aW9uLW1hbmFnZXIKc3lzdGVtY3RsIHN0YXJ0IGF0dGVzdGF0aW9uLW1hbmFnZXI="
+      }
+    },
+    "aws_s3_bucket": {
+      "attestation-manager-binaries": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/attestation-manager-binaries",
+            "uniqueId": "attestation-manager-binaries"
+          }
+        },
+        "bucket": "attestation-manager-binaries",
+        "versioning": {
+          "enabled": true
+        }
+      }
+    },
+    "aws_s3_bucket_public_access_block": {
+      "binary-bucket-public-access-block": {
+        "//": {
+          "metadata": {
+            "path": "attestation-manager/binary-bucket-public-access-block",
+            "uniqueId": "binary-bucket-public-access-block"
+          }
+        },
+        "block_public_acls": true,
+        "block_public_policy": true,
+        "bucket": "${aws_s3_bucket.attestation-manager-binaries.id}",
+        "ignore_public_acls": true,
+        "restrict_public_buckets": true
+      }
+    }
+  },
+  "terraform": {
+    "backend": {
+      "local": {
+        "path": "/Users/brandonchatham/sandbox/obsidian-attestation-agent/terraform.attestation-manager.tfstate"
+      }
+    },
+    "required_providers": {
+      "aws": {
+        "source": "aws",
+        "version": "4.67.0"
+      }
+    }
+  }
+}

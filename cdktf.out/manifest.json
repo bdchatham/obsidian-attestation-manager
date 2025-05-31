@@ -1,0 +1,16 @@
+{
+  "stacks": {
+    "attestation-manager": {
+      "annotations": [
+      ],
+      "constructPath": "attestation-manager",
+      "dependencies": [
+      ],
+      "name": "attestation-manager",
+      "stackMetadataPath": "stacks/attestation-manager/metadata.json",
+      "synthesizedStackPath": "stacks/attestation-manager/cdk.tf.json",
+      "workingDirectory": "stacks/attestation-manager"
+    }
+  },
+  "version": "0.20.12"
+}

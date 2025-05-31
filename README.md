@@ -5,7 +5,7 @@ A gRPC service for managing AMD SEV/SNP TEE attestations, providing secure bindi
 ## Features
 
 - Secure binding between input/output and attestations
-- Operator signature verification
+- BN254 signature verification
 - AMD SEV-SNP hardware attestation
 - Configurable deployment options
 - Systemd service integration
@@ -51,8 +51,8 @@ A gRPC service for managing AMD SEV/SNP TEE attestations, providing secure bindi
 
 4. Configure your operator key:
    ```bash
-   # Generate a new ECDSA key (if needed)
-   openssl ecparam -name prime256v1 -genkey -noout -out operator.key
+   # Generate a new BN254 private key (32 random bytes)
+   openssl rand -out operator.key 32
    sudo mv operator.key /etc/attestation-manager/
    sudo chown attestation:attestation /etc/attestation-manager/operator.key
    sudo chmod 600 /etc/attestation-manager/operator.key
@@ -86,7 +86,7 @@ The configuration file is located at `/etc/attestation-manager/config.yaml`. Key
 
 - `server.host`: Listen address (default: "0.0.0.0")
 - `server.port`: gRPC port (default: 50051)
-- `operator_key.private_key_path`: Path to operator's ECDSA private key
+- `operator_key.private_key_path`: Path to operator's BN254 private key (32-byte scalar)
 - `logging.level`: Log level (debug, info, warn, error)
 - `logging.file`: Log file path
 - `sev.device`: Path to SEV guest device
@@ -97,6 +97,7 @@ The configuration file is located at `/etc/attestation-manager/config.yaml`. Key
 2. The systemd service uses security hardening options
 3. Configuration files are protected with appropriate permissions
 4. SEV device access is restricted to the attestation service
+5. BN254 keys provide strong cryptographic security for attestation signatures
 
 ## Troubleshooting
 
@@ -117,4 +118,11 @@ The configuration file is located at `/etc/attestation-manager/config.yaml`. Key
 
 4. Ensure the operator key is properly configured:
    ```bash
-   sudo -u attestation test -r /etc/attestation-manager/operator.key 
+   sudo -u attestation test -r /etc/attestation-manager/operator.key
+   ```
+
+5. Verify key format:
+   ```bash
+   # The key should be exactly 32 bytes
+   stat -f %z /etc/attestation-manager/operator.key
+   ``` 

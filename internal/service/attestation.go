@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"fmt"
 
 	"github.com/bdchatham/obsidian-attestation-manager/internal/attestation"
 	"github.com/bdchatham/obsidian-attestation-manager/internal/config"
 	pb "github.com/bdchatham/obsidian-attestation-manager/proto"
+	"github.com/consensys/gnark-crypto/ecc/bn254"
 	"github.com/google/go-sev-guest/client"
 )
 
@@ -15,7 +15,7 @@ import (
 type AttestationService struct {
 	pb.UnimplementedAttestationServiceServer
 	quoteProvider client.QuoteProvider
-	operatorKey   *ecdsa.PrivateKey
+	operatorKey   *bn254.Fr
 }
 
 // NewAttestationService creates a new instance of AttestationService
@@ -31,7 +31,7 @@ func NewAttestationService(cfg *config.AttestationConfig) *AttestationService {
 	return &AttestationService{
 		UnimplementedAttestationServiceServer: pb.UnimplementedAttestationServiceServer{},
 		quoteProvider:                         provider,
-		operatorKey:                           cfg.GetOperatorKey(),
+		operatorKey:                           cfg.GetOperatorPrivateKey(),
 	}
 }
 

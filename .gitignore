@@ -1,0 +1,39 @@
+# Node modules
+node_modules/
+
+# CDKTF output
+cdktf.out/
+
+# Terraform local files
+.terraform/
+.terraform.lock.hcl
+
+# Compiled JavaScript files
+dist/
+lib/
+build/
+
+# TypeScript cache and build artifacts
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# dotenv (if used)
+.env
+.env.*
+
+# CDKTF context file
+cdktf.context.json
+
