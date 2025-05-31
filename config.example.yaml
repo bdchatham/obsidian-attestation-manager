@@ -1,0 +1,17 @@
+server:
+  host: "0.0.0.0"  # Listen on all interfaces
+  port: 50051      # Default gRPC port
+
+# Operator's ECDSA private key for signing attestations
+# Replace with your actual key in production
+operator_key:
+  private_key_path: "/etc/attestation-manager/operator.key"
+
+# Logging configuration
+logging:
+  level: "info"
+  file: "/var/log/attestation-manager/attestation.log"
+
+# SEV device configuration
+sev:
+  device: "/dev/sev-guest"

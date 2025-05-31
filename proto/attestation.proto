@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package attestation;
+option go_package = "github.com/bdchatham/obsidian-attestation-manager/proto";
+
+// AttestationService provides AMD SEV/SNP TEE attestation capabilities
+service AttestationService {
+  // GetAttestation returns an attestation report for the current TEE
+  rpc GetAttestation(AttestationRequest) returns (AttestationResponse) {}
+}
+
+// AttestationRequest specifies parameters for generating an attestation
+message AttestationRequest {
+  bytes input_hash = 1;      // SHA-256 hash of the input payload
+  bytes output_hash = 2;     // SHA-256 hash of the output payload
+  bytes operator_pubkey = 3; // Operator's ECDSA public key (X.509 DER encoded)
+}
+
+// AttestationResponse contains the attestation report and related data
+message AttestationResponse {
+  bytes report = 1;          // Raw attestation report
+  bytes signature = 2;       // Report signature
+  bytes certificate = 3;     // AMD signing certificate
+  string platform_info = 4;  // Additional platform information
+  bool is_secure = 5;       // Indicates if running in a secure environment
+  bytes report_data = 6;    // The 64-byte report data that was signed (for verification)
+  bytes operator_sig = 7;    // The operator's signature over (input_hash || output_hash)
+} 

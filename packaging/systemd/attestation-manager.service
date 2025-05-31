@@ -1,0 +1,22 @@
+[Unit]
+Description=AMD SEV Attestation Manager
+After=network.target
+
+[Service]
+Type=simple
+User=attestation
+Group=attestation
+ExecStart=/usr/local/bin/attestation-manager --config /etc/attestation-manager/config.yaml
+Restart=always
+RestartSec=5
+# Security settings
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/attestation-manager
+PrivateTmp=true
+NoNewPrivileges=true
+# SEV device access
+DeviceAllow=/dev/sev-guest rw
+
+[Install]
+WantedBy=multi-user.target 
